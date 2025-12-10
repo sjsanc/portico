@@ -137,6 +137,50 @@ export default function App() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Unsorted folder */}
+              {(() => {
+                const unsortedBookmarks = bookmarks.filter(b => b.folder_id === null)
+                const faviconSlots = [
+                  unsortedBookmarks[0]?.favicon_url,
+                  unsortedBookmarks[1]?.favicon_url,
+                  unsortedBookmarks[2]?.favicon_url,
+                  unsortedBookmarks[3]?.favicon_url,
+                ]
+                return (
+                  <button
+                    onClick={() => setSelectedFolderId(null)}
+                    className="relative group text-left"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="cursor-pointer relative flex items-start justify-start gap-6 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300">
+                      {/* 2x2 Favicon Grid */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {faviconSlots.map((faviconUrl, idx) => (
+                          <div key={idx} className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                            {faviconUrl ? (
+                              <img
+                                src={faviconUrl}
+                                alt="favicon"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-white/5" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-2xl line-clamp-2">Unsorted</h3>
+                        <p className="text-slate-300 text-sm mt-1">{unsortedBookmarks.length} bookmarks</p>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })()}
+
               {folders.map((folder) => {
                 const bookmarks = folder.bookmarks || []
                 const faviconSlots = [
@@ -203,14 +247,6 @@ export default function App() {
                 : 'Unsorted'
               }
             </h2>
-            {selectedFolderId && (
-              <button
-                onClick={() => setSelectedFolderId(null)}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-200 text-sm font-semibold border border-white/20 hover:border-white/40"
-              >
-                ← Back to folders
-              </button>
-            )}
           </div>
 
           {loading && bookmarks.length === 0 && (
