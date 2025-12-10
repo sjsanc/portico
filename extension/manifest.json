@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Portico Extension",
+  "version": "1.0.0",
+  "description": "A basic extension with a star icon",
+  "permissions": ["scripting", "tabs"],
+  "host_permissions": [
+    "http://localhost:8080/*"
+  ],
+  "action": {
+    "default_title": "Portico Extension",
+    "default_icon": "icons/star.png",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "dist/background.js"
+  }
+}

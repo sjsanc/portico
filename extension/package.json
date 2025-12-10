@@ -1,0 +1,16 @@
+{
+  "name": "portico-extension",
+  "version": "1.0.0",
+  "description": "A basic web extension with TypeScript",
+  "scripts": {
+    "build": "bun build.js && bun run tsc",
+    "dev": "bun build.js && bun run tsc --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/chrome": "^0.1.32",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.3.3"
+  }
+}
