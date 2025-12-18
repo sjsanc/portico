@@ -94,18 +94,20 @@ func GetAllBookmarks(w http.ResponseWriter, r *http.Request) {
 // UpdateBookmark handles PUT requests to update a bookmark
 func UpdateBookmark(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	var bookmark models.Bookmark
 
-	if err := json.NewDecoder(r.Body).Decode(&bookmark); err != nil {
+	// Use map to allow explicit null values (GORM's Updates ignores nil pointer fields)
+	var updates map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := database.DB.Model(&models.Bookmark{}).Where("id = ?", id).Updates(bookmark).Error; err != nil {
+	if err := database.DB.Model(&models.Bookmark{}).Where("id = ?", id).Updates(updates).Error; err != nil {
 		http.Error(w, "Failed to update bookmark", http.StatusInternalServerError)
 		return
 	}
 
+	var bookmark models.Bookmark
 	if err := database.DB.First(&bookmark, id).Error; err != nil {
 		http.Error(w, "Bookmark not found", http.StatusNotFound)
 		return

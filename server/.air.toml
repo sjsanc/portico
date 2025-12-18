@@ -41,3 +41,6 @@ tmp_dir = "tmp"
 [screen]
   clear_on_rebuild = false
   keep_scroll = true
+
+[build.args]
+  env = ["PORT=8081", "ENV=development"]

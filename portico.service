@@ -1,0 +1,16 @@
+[Unit]
+Description=Portico Bookmark Manager
+After=network.target
+
+[Service]
+Type=simple
+User=sjsanc
+WorkingDirectory=/home/sjsanc/work/portico/server
+Environment="ENV=production"
+Environment="PORT=8080"
+ExecStart=/home/sjsanc/work/portico/server/server
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,13 +1,14 @@
 SHELL := fish
 .SHELLFLAGS := -c
 
-.PHONY: help build build-client build-extension build-server dev dev-client dev-extension dev-server clean
+.PHONY: help build build-client build-extension build-server dev dev-client dev-extension dev-server clean deploy install-service start-service stop-service restart-service status-service
 
 help:
 	@echo "Portico Build System"
 	@echo ""
 	@echo "Production Build:"
 	@echo "  make build              - Build all (client, extension, server)"
+	@echo "  make deploy             - Build and prepare for deployment"
 	@echo ""
 	@echo "Development (Watch Mode):"
 	@echo "  make dev                - Run all in watch mode (requires tmux)"
@@ -19,6 +20,13 @@ help:
 	@echo "  make build-client       - Build client production bundle"
 	@echo "  make build-extension    - Build extension"
 	@echo "  make build-server       - Build server binary (requires client built)"
+	@echo ""
+	@echo "Service Management:"
+	@echo "  make install-service    - Install systemd service"
+	@echo "  make start-service      - Start Portico service"
+	@echo "  make stop-service       - Stop Portico service"
+	@echo "  make restart-service    - Restart Portico service"
+	@echo "  make status-service     - Check service status"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean              - Remove all build artifacts"
@@ -78,5 +86,50 @@ clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf client/dist
 	rm -rf extension/dist
+	rm -rf server/dist
 	rm -f server/server
 	@echo "✓ Cleanup complete"
+
+# ============================================================================
+# DEPLOYMENT
+# ============================================================================
+
+deploy: build
+	@echo "Preparing deployment..."
+	@echo "Copying static files to server/dist..."
+	mkdir -p server/dist
+	cp -r client/dist/* server/dist/
+	@echo "✓ Deployment ready!"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Run 'make install-service' to install systemd service"
+	@echo "  2. Run 'make start-service' to start the service"
+
+# ============================================================================
+# SERVICE MANAGEMENT
+# ============================================================================
+
+install-service:
+	@echo "Installing systemd service..."
+	sudo cp portico.service /etc/systemd/system/
+	sudo systemctl daemon-reload
+	sudo systemctl enable portico
+	@echo "✓ Service installed and enabled"
+
+start-service:
+	@echo "Starting Portico service..."
+	sudo systemctl start portico
+	@echo "✓ Service started"
+
+stop-service:
+	@echo "Stopping Portico service..."
+	sudo systemctl stop portico
+	@echo "✓ Service stopped"
+
+restart-service:
+	@echo "Restarting Portico service..."
+	sudo systemctl restart portico
+	@echo "✓ Service restarted"
+
+status-service:
+	@sudo systemctl status portico

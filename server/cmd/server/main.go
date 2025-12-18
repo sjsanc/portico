@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"server/internal/database"
 	"server/internal/handlers"
 
@@ -39,21 +40,39 @@ func main() {
 
 	log.Println("Database initialized successfully")
 
+	// Get port from environment, default to 8080
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Get environment mode
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "development"
+	}
+
 	mux := http.NewServeMux()
 
-	// Bookmark routes
+	// API routes
 	mux.HandleFunc("POST /bookmarks", handlers.CreateBookmark)
 	mux.HandleFunc("GET /bookmarks", handlers.GetAllBookmarks)
 	mux.HandleFunc("PUT /bookmarks/{id}", handlers.UpdateBookmark)
 	mux.HandleFunc("DELETE /bookmarks/{id}", handlers.DeleteBookmark)
 
-	// Folder routes
 	mux.HandleFunc("POST /folders", handlers.CreateFolder)
 	mux.HandleFunc("GET /folders", handlers.GetAllFolders)
 	mux.HandleFunc("GET /folders/{id}", handlers.GetFolder)
 	mux.HandleFunc("PUT /folders/{id}", handlers.UpdateFolder)
 	mux.HandleFunc("DELETE /folders/{id}", handlers.DeleteFolder)
 
-	log.Println("Server listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", corsMiddleware(mux)))
+	// In production, serve static files
+	if env == "production" {
+		fs := http.FileServer(http.Dir("./dist"))
+		mux.Handle("/", fs)
+		log.Println("Serving static files from ./dist")
+	}
+
+	log.Printf("Server running in %s mode on port :%s\n", env, port)
+	log.Fatal(http.ListenAndServe(":"+port, corsMiddleware(mux)))
 }
