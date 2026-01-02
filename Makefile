@@ -41,7 +41,7 @@ build: clean build-client build-extension build-server
 build-client:
 	@echo "Building client..."
 	cd client && bun run build
-	@echo "✓ Client built to client/dist/"
+	@echo "✓ Client built to server/dist/"
 
 build-extension:
 	@echo "Building extension..."
@@ -96,9 +96,6 @@ clean:
 
 deploy: build
 	@echo "Preparing deployment..."
-	@echo "Copying static files to server/dist..."
-	mkdir -p server/dist
-	cp -r client/dist/* server/dist/
 	@echo "✓ Deployment ready!"
 	@echo ""
 	@echo "Next steps:"

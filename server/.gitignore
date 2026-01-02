@@ -1,0 +1,20 @@
+# Compiled binary
+server
+
+# Air temporary build directory
+tmp/
+
+# Deployment static files
+dist/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Air build logs
+build-errors.log
+
+# Go test cache
+*.test
+*.out

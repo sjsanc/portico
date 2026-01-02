@@ -1,16 +1,21 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DndContext, DragOverlay } from '@dnd-kit/core'
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core'
+import { motion } from 'framer-motion'
 import { useAppStore } from './store/appStore'
 import { fetchFolders, fetchBookmarks, deleteBookmark, createFolder, moveBookmark } from './api'
 import type { Bookmark } from './types'
 import FoldersColumn from './components/FoldersColumn'
 import BookmarksGrid from './components/BookmarksGrid'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Calendar, Type, ArrowDown, ArrowUp } from 'lucide-react'
 
 export default function App() {
   const queryClient = useQueryClient()
   const [activeBookmarks, setActiveBookmarks] = useState<Bookmark[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const {
     selectedFolderId,
     sortField,
@@ -43,6 +48,23 @@ export default function App() {
   })
 
   const loading = foldersLoading || bookmarksLoading
+
+  useEffect(() => {
+    searchInputRef.current?.focus()
+  }, [])
+
+  // Reset to page 1 when bookmarks or folder changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedFolderId, bookmarks.length])
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery.trim())}`
+      window.open(searchUrl, '_blank')
+      setSearchQuery('')
+    }
+  }
 
   const handleDeleteBookmark = async (id: number) => {
     try {
@@ -113,42 +135,155 @@ export default function App() {
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-        <header className="sticky px-6 top-0 z-10 bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-md border-b border-white/10 h-16">
-          <div className="container mx-auto flex items-center h-full">
-            <h1 className="text-4xl font-bold text-white">Portico</h1>
-          </div>
-        </header>
+      {/* Full-screen blurred background */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/assets/wallhaven-dgy9po.png)',
+          filter: 'blur(14px) brightness(0.5)',
+          transform: 'scale(1.1)',
+          zIndex: -1
+        }}
+      />
+      {/* Dark overlay to make background unintrusive */}
+      <div
+        className="fixed inset-0"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          zIndex: -1
+        }}
+      />
+    <div className="min-h-screen flex flex-col items-center justify-center relative">
+        <div className="w-[1750px] flex flex-col gap-2">
+          <motion.div
+            className="flex items-center gap-2"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search Google..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              className="flex-1 input-base"
+            />
 
-        <div className="flex gap-6 container mx-auto">
-          <FoldersColumn
-            folders={folders}
-            allBookmarks={allBookmarks}
-            selectedFolderId={selectedFolderId}
-            loading={loading}
-            onFolderSelect={setSelectedFolderId}
-            onCreateFolder={() => setIsModalOpen(true)}
-          />
+            <select
+              value={sortField}
+              onChange={(e) => setSortField(e.target.value as any)}
+              className="input-base text-sm cursor-pointer"
+            >
+              <option value="bookmarked_at" className="bg-slate-800">Date</option>
+              <option value="name" className="bg-slate-800">Title</option>
+            </select>
+            <select
+              value={sortDirection}
+              onChange={(e) => setSortDirection(e.target.value as any)}
+              className="input-base text-sm cursor-pointer"
+            >
+              <option value="desc" className="bg-slate-800">↓ Desc</option>
+              <option value="asc" className="bg-slate-800">↑ Asc</option>
+            </select>
 
-          <BookmarksGrid
-            bookmarks={bookmarks}
-            folders={folders}
-            selectedFolderId={selectedFolderId}
-            selectedBookmarkIds={selectedBookmarkIds}
-            isDragging={activeBookmarks.length > 0}
-            loading={loading}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSortFieldChange={setSortField}
-            onSortDirectionChange={setSortDirection}
-            onDeleteBookmark={handleDeleteBookmark}
-            onSelectBookmark={toggleBookmarkSelection}
-          />
+            {(() => {
+              const totalPages = Math.max(1, Math.ceil(bookmarks.length / 28));
+              return (
+                <>
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="input-base text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-400/20 hover:border-orange-500 transition-all duration-200"
+                    title="Go to first page"
+                  >
+                    <ChevronsLeft />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="input-base text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-400/20 hover:border-orange-500 transition-all duration-200"
+                    title="Previous page"
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <span className="input-base text-sm font-semibold whitespace-nowrap flex items-center">
+                    {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="input-base text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-400/20 hover:border-orange-500 transition-all duration-200"
+                    title="Next page"
+                  >
+                    <ChevronRight />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="input-base text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-400/20 hover:border-orange-500 transition-all duration-200"
+                    title="Go to last page"
+                  >
+                    <ChevronsRight />
+                  </button>
+                </>
+              );
+            })()}
+          </motion.div>
+
+          <motion.div
+            className="flex gap-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <FoldersColumn
+              folders={folders}
+              allBookmarks={allBookmarks}
+              selectedFolderId={selectedFolderId}
+              loading={loading}
+              onFolderSelect={setSelectedFolderId}
+              onCreateFolder={() => setIsModalOpen(true)}
+            />
+
+            <div className="relative">
+              <div
+                className="w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent backdrop-blur-sm"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)'
+                }}
+              />
+            </div>
+
+            <BookmarksGrid
+              bookmarks={bookmarks}
+              folders={folders}
+              selectedFolderId={selectedFolderId}
+              selectedBookmarkIds={selectedBookmarkIds}
+              isDragging={activeBookmarks.length > 0}
+              loading={loading}
+              currentPage={currentPage}
+              onDeleteBookmark={handleDeleteBookmark}
+              onSelectBookmark={toggleBookmarkSelection}
+            />
+          </motion.div>
         </div>
 
         {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-xl border border-white/20 p-6 w-full max-w-md">
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div
+            className="bg-sky-900/40 backdrop-blur-xl rounded-xl border border-white/20 p-6 w-full max-w-md"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
             <h2 className="text-xl font-bold text-white mb-4">Create New Folder</h2>
             <input
               type="text"
@@ -156,7 +291,7 @@ export default function App() {
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
-              className="w-full px-4 py-2 mb-6 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all"
+              className="w-full input-base mb-6"
             />
             <div className="flex gap-3 justify-end">
               <button
@@ -164,29 +299,29 @@ export default function App() {
                   setIsModalOpen(false)
                   setNewFolderName('')
                 }}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-200 font-semibold border border-white/20 hover:border-white/40"
+                className="btn-glass"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateFolder}
                 disabled={!newFolderName.trim()}
-                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-600/50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 font-semibold"
+                className="btn-primary"
               >
                 Create
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
       </div>
       <DragOverlay>
         {activeBookmarks.length > 0 && (
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-xl blur-xl opacity-100" />
-            <div className="relative flex flex-col p-4 bg-white/10 backdrop-blur-md rounded-xl border border-cyan-400 shadow-lg shadow-cyan-400/20">
+            <div className="card-glow opacity-100" />
+            <div className="card-base bg-sky-400/15 border-orange-500 shadow-lg shadow-orange-500/20 flex flex-col">
               {activeBookmarks.length > 1 && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg z-10">
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg z-10">
                   {activeBookmarks.length}
                 </div>
               )}

@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { motion } from 'framer-motion'
 import { useDraggable } from '@dnd-kit/core'
 import { formatDistanceToNow } from 'date-fns'
 import { Check } from 'lucide-react'
@@ -11,11 +12,12 @@ interface BookmarkCardProps {
   isDraggingAny: boolean
   onDelete: (id: number) => void
   onSelect: (id: number) => void
+  index: number
 }
 
 const FALLBACK_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"%3E%3Ccircle cx="12" cy="12" r="10"/%3E%3C/svg%3E'
 
-function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onDelete, onSelect }: BookmarkCardProps) {
+function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onDelete, onSelect, index }: BookmarkCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `bookmark-${bookmark.id}`,
   })
@@ -24,10 +26,13 @@ function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onD
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleCardClick = (e: React.MouseEvent) => {
     if (e.shiftKey) {
       e.preventDefault()
       onSelect(bookmark.id)
+    } else {
+      // Regular click - open bookmark in new tab
+      window.open(bookmark.url, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -35,16 +40,18 @@ function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onD
   const shouldHide = isDraggingAny && isSelected && selectionCount > 1 && !isDragging
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={{ ...style, opacity: shouldHide ? 0 : 1 }}
       {...attributes}
-      {...listeners}
-      onClick={handleClick}
-      className="relative group transition-opacity"
+      onClick={handleCardClick}
+      className="relative group transition-opacity cursor-pointer"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: shouldHide ? 0 : 1, y: 0 }}
+      transition={{ duration: 0.15, delay: index * 0.01 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className={`relative flex flex-col p-4 bg-white/10 backdrop-blur-md rounded-xl border transition-all duration-300 ${isSelected ? 'border-cyan-400 ring-2 ring-cyan-400/30' : 'border-white/20 hover:border-white/40'}`}>
+      <div className="card-glow" />
+      <div className={`card-blue flex flex-col ${isSelected ? 'border-orange-500 ring-2 ring-orange-500/30' : ''}`}>
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -55,28 +62,28 @@ function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onD
         >
           ✕
         </button>
-        <a
-          href={bookmark.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.shiftKey && e.preventDefault()}
-          className="flex items-start gap-3 h-14"
-        >
-          {isSelected ? (
-            <div className="h-full aspect-square rounded-lg flex-shrink-0 shadow-lg bg-cyan-500 flex items-center justify-center">
-              <Check className="w-8 h-8 text-white" strokeWidth={3} />
-            </div>
-          ) : (
-            <img
-              src={bookmark.favicon_url}
-              alt={bookmark.name}
-              className="h-full aspect-square rounded-lg object-cover flex-shrink-0 shadow-lg"
-              onError={(e) => {
-                e.currentTarget.src = FALLBACK_ICON
-              }}
-            />
-          )}
-          <div className="flex-1 min-w-0 gap-1">
+        <div className="flex items-start gap-3 h-14">
+          <div
+            {...listeners}
+            className="h-full cursor-grab active:cursor-grabbing"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isSelected ? (
+              <div className="h-full aspect-square rounded-lg flex-shrink-0 shadow-lg bg-cyan-500 flex items-center justify-center">
+                <Check className="w-8 h-8 text-white" strokeWidth={3} />
+              </div>
+            ) : (
+              <img
+                src={bookmark.favicon_url}
+                alt={bookmark.name}
+                className="h-full aspect-square rounded-lg object-cover flex-shrink-0 shadow-lg"
+                onError={(e) => {
+                  e.currentTarget.src = FALLBACK_ICON
+                }}
+              />
+            )}
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
             <p className="text-slate-400 text-xs">
               {formatDistanceToNow(new Date(bookmark.bookmarked_at), { addSuffix: true })}
             </p>
@@ -87,9 +94,9 @@ function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onD
               {bookmark.url}
             </p>
           </div>
-        </a>
+        </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

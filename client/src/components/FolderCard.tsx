@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useDroppable } from '@dnd-kit/core'
 import type { Bookmark, FolderId } from '../types'
 
@@ -7,9 +8,10 @@ interface FolderCardProps {
   bookmarks: Bookmark[]
   isSelected: boolean
   onClick: () => void
+  index?: number
 }
 
-export default function FolderCard({ folderId, name, bookmarks, isSelected, onClick }: FolderCardProps) {
+export default function FolderCard({ folderId, name, bookmarks, isSelected, onClick, index = 0 }: FolderCardProps) {
   const isDroppable = folderId !== 'all'
 
   const { setNodeRef, isOver } = useDroppable({
@@ -18,15 +20,22 @@ export default function FolderCard({ folderId, name, bookmarks, isSelected, onCl
   })
 
   return (
-    <button ref={setNodeRef} onClick={onClick} className="relative group text-left w-full">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    <motion.button
+      ref={setNodeRef}
+      onClick={onClick}
+      className="relative group text-left w-full"
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.15, delay: index * 0.05 }}
+    >
+      <div className="card-glow" />
       <div
-        className={`cursor-pointer relative flex items-center gap-3 p-4 bg-white/10 backdrop-blur-md rounded-xl border transition-all duration-300 ${
+        className={`cursor-pointer card-base bg-sky-400/15 flex items-center gap-2 ${
           isOver && isDroppable
-            ? 'border-cyan-400 bg-cyan-400/20 scale-[1.02]'
+            ? 'border-orange-500 bg-orange-500/20 scale-[1.02]'
             : isSelected
-              ? 'border-cyan-400/60 bg-white/20'
-              : 'border-white/20 hover:border-white/40'
+              ? 'border-orange-500/60 bg-sky-400/20'
+              : 'border-white/20 hover:border-orange-500'
         }`}
       >
         <div className="w-14 h-14 rounded-lg bg-white/5 flex-shrink-0">
@@ -52,6 +61,6 @@ export default function FolderCard({ folderId, name, bookmarks, isSelected, onCl
           <p className="text-slate-300 text-xs">{bookmarks.length} bookmarks</p>
         </div>
       </div>
-    </button>
+    </motion.button>
   )
 }
