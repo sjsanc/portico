@@ -2,3 +2,6 @@ CLAUDE.md
 TODO.md
 OUTLINE.md
 .claude
+server/scripts/bookmarks.csv
+server/scripts/bookmarks.sql
+portico.service

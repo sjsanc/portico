@@ -1,0 +1,19 @@
+[Unit]
+Description=Portico Bookmark Manager
+After=network.target
+
+[Service]
+Type=simple
+# Set this to your username
+User=your-username
+# Set this to your portico installation path
+WorkingDirectory=/path/to/portico/server
+Environment="ENV=production"
+Environment="PORT=8080"
+# Set this to your portico installation path
+ExecStart=/path/to/portico/server/server
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
