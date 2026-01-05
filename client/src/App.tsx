@@ -61,7 +61,7 @@ export default function App() {
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
       const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery.trim())}`
-      window.open(searchUrl, '_blank')
+      window.location.href = searchUrl
       setSearchQuery('')
     }
   }
