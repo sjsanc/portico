@@ -8,14 +8,16 @@ import { fetchFolders, fetchBookmarks, deleteBookmark, createFolder, moveBookmar
 import type { Bookmark } from './types'
 import FoldersColumn from './components/FoldersColumn'
 import BookmarksGrid from './components/BookmarksGrid'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Calendar, Type, ArrowDown, ArrowUp } from 'lucide-react'
+import OmniSearch, { type OmniSearchHandle } from './components/OmniSearch'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 export default function App() {
   const queryClient = useQueryClient()
   const [activeBookmarks, setActiveBookmarks] = useState<Bookmark[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [searchMatches, setSearchMatches] = useState<Bookmark[]>([])
+  const [highlightedBookmarkId, setHighlightedBookmarkId] = useState<[number, number] | null>(null)
+  const omniSearchRef = useRef<OmniSearchHandle>(null)
   const {
     selectedFolderId,
     sortField,
@@ -50,7 +52,7 @@ export default function App() {
   const loading = foldersLoading || bookmarksLoading
 
   useEffect(() => {
-    searchInputRef.current?.focus()
+    omniSearchRef.current?.focus()
   }, [])
 
   // Reset to page 1 when bookmarks or folder changes
@@ -58,13 +60,111 @@ export default function App() {
     setCurrentPage(1)
   }, [selectedFolderId, bookmarks.length])
 
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery.trim())}`
-      window.location.href = searchUrl
-      setSearchQuery('')
-    }
+  // Grid navigation with arrow keys
+  const COLUMNS = 4
+  const ROWS = 7
+  const ITEMS_PER_PAGE = COLUMNS * ROWS
+
+  // Helper to get bookmark at [row, col] position
+  const getBookmarkAtPosition = (row: number, col: number): Bookmark | null => {
+    const displayedBookmarks = searchMatches.length > 0 ? searchMatches : bookmarks
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const paginatedBookmarks = displayedBookmarks.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+    const index = row * COLUMNS + col
+    return paginatedBookmarks[index] ?? null
   }
+
+  // Calculate max row for current page
+  const getMaxRow = (): number => {
+    const displayedBookmarks = searchMatches.length > 0 ? searchMatches : bookmarks
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const paginatedBookmarks = displayedBookmarks.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+    return Math.ceil(paginatedBookmarks.length / COLUMNS) - 1
+  }
+
+  // Get max column for a given row
+  const getMaxColForRow = (row: number): number => {
+    const displayedBookmarks = searchMatches.length > 0 ? searchMatches : bookmarks
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const paginatedBookmarks = displayedBookmarks.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+    const itemsInRow = Math.min(COLUMNS, paginatedBookmarks.length - row * COLUMNS)
+    return Math.max(0, itemsInRow - 1)
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle arrow keys when no search is active
+      if (searchMatches.length > 0) return
+
+      // Don't interfere if user is typing in an input
+      if (document.activeElement?.tagName === 'INPUT') return
+
+      const displayedBookmarks = bookmarks
+      if (displayedBookmarks.length === 0) return
+
+      const maxRow = getMaxRow()
+      if (maxRow < 0) return
+
+      let [row, col] = highlightedBookmarkId ?? [-1, -1]
+
+      // If nothing is highlighted, initialize based on direction
+      if (highlightedBookmarkId === null) {
+        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return
+        e.preventDefault()
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          setHighlightedBookmarkId([0, 0])
+        } else {
+          setHighlightedBookmarkId([maxRow, getMaxColForRow(maxRow)])
+        }
+        return
+      }
+
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault()
+          if (col > 0) {
+            setHighlightedBookmarkId([row, col - 1])
+          }
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          if (col < getMaxColForRow(row)) {
+            setHighlightedBookmarkId([row, col + 1])
+          }
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          if (row > 0) {
+            const newCol = Math.min(col, getMaxColForRow(row - 1))
+            setHighlightedBookmarkId([row - 1, newCol])
+          }
+          break
+        case 'ArrowDown':
+          e.preventDefault()
+          if (row < maxRow) {
+            const newCol = Math.min(col, getMaxColForRow(row + 1))
+            setHighlightedBookmarkId([row + 1, newCol])
+          }
+          break
+        case 'Enter':
+          e.preventDefault()
+          const bookmark = getBookmarkAtPosition(row, col)
+          if (bookmark) {
+            window.location.href = bookmark.url
+          }
+          return
+        case 'Escape':
+          e.preventDefault()
+          setHighlightedBookmarkId(null)
+          return
+        default:
+          return
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [bookmarks, searchMatches, highlightedBookmarkId, currentPage])
 
   const handleDeleteBookmark = async (id: number) => {
     try {
@@ -153,7 +253,7 @@ export default function App() {
           zIndex: -1
         }}
       />
-    <div className="min-h-screen flex flex-col items-center justify-center relative">
+      <div className="min-h-screen flex flex-col items-center justify-center relative">
         <div className="w-[1750px] flex flex-col gap-2">
           <motion.div
             className="flex items-center gap-2"
@@ -161,14 +261,14 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search Google..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearch}
-              className="flex-1 input-base"
+            <OmniSearch
+              ref={omniSearchRef}
+              bookmarks={allBookmarks}
+              onQueryChange={(query, matches) => {
+                setSearchMatches(matches)
+                setCurrentPage(1)
+              }}
+              onMatchChange={() => setHighlightedBookmarkId(null)}
             />
 
             <select
@@ -189,7 +289,8 @@ export default function App() {
             </select>
 
             {(() => {
-              const totalPages = Math.max(1, Math.ceil(bookmarks.length / 28));
+              const displayedBookmarks = searchMatches.length > 0 ? searchMatches : bookmarks
+              const totalPages = Math.max(1, Math.ceil(displayedBookmarks.length / 28));
               return (
                 <>
                   <button
@@ -258,10 +359,11 @@ export default function App() {
             </div>
 
             <BookmarksGrid
-              bookmarks={bookmarks}
+              bookmarks={searchMatches.length > 0 ? searchMatches : bookmarks}
               folders={folders}
               selectedFolderId={selectedFolderId}
               selectedBookmarkIds={selectedBookmarkIds}
+              highlightedBookmarkId={highlightedBookmarkId}
               isDragging={activeBookmarks.length > 0}
               loading={loading}
               currentPage={currentPage}
@@ -272,48 +374,48 @@ export default function App() {
         </div>
 
         {isModalOpen && (
-        <motion.div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-        >
           <motion.div
-            className="bg-sky-900/40 backdrop-blur-xl rounded-xl border border-white/20 p-6 w-full max-w-md"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
           >
-            <h2 className="text-xl font-bold text-white mb-4">Create New Folder</h2>
-            <input
-              type="text"
-              placeholder="Folder name"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
-              className="w-full input-base mb-6"
-            />
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setIsModalOpen(false)
-                  setNewFolderName('')
-                }}
-                className="btn-glass"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateFolder}
-                disabled={!newFolderName.trim()}
-                className="btn-primary"
-              >
-                Create
-              </button>
-            </div>
+            <motion.div
+              className="bg-sky-900/40 backdrop-blur-xl rounded-xl border border-white/20 p-6 w-full max-w-md"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <h2 className="text-xl font-bold text-white mb-4">Create New Folder</h2>
+              <input
+                type="text"
+                placeholder="Folder name"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
+                className="w-full input-base mb-6"
+              />
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false)
+                    setNewFolderName('')
+                  }}
+                  className="btn-glass"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateFolder}
+                  disabled={!newFolderName.trim()}
+                  className="btn-primary"
+                >
+                  Create
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
       </div>
       <DragOverlay>
         {activeBookmarks.length > 0 && (

@@ -8,6 +8,7 @@ import type { Bookmark } from '../types'
 interface BookmarkCardProps {
   bookmark: Bookmark
   isSelected: boolean
+  isHighlighted: boolean
   selectionCount: number
   isDraggingAny: boolean
   onDelete: (id: number) => void
@@ -17,7 +18,7 @@ interface BookmarkCardProps {
 
 const FALLBACK_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"%3E%3Ccircle cx="12" cy="12" r="10"/%3E%3C/svg%3E'
 
-function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onDelete, onSelect, index }: BookmarkCardProps) {
+function BookmarkCard({ bookmark, isSelected, isHighlighted, selectionCount, isDraggingAny, onDelete, onSelect, index }: BookmarkCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `bookmark-${bookmark.id}`,
   })
@@ -51,7 +52,7 @@ function BookmarkCard({ bookmark, isSelected, selectionCount, isDraggingAny, onD
       transition={{ duration: 0.15, delay: index * 0.01 }}
     >
       <div className="card-glow" />
-      <div className={`card-blue flex flex-col ${isSelected ? 'border-orange-500 ring-2 ring-orange-500/30' : ''}`}>
+      <div className={`card-blue flex flex-col ${isSelected || isHighlighted ? 'border-orange-500 ring-2 ring-orange-500/30' : ''}`}>
         <button
           onClick={(e) => {
             e.stopPropagation()

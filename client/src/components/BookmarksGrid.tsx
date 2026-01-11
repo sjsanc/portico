@@ -8,6 +8,7 @@ interface BookmarksGridProps {
   folders: Folder[]
   selectedFolderId: FolderId
   selectedBookmarkIds: Set<number>
+  highlightedBookmarkId: [number, number] | null
   isDragging: boolean
   loading: boolean
   currentPage: number
@@ -24,6 +25,7 @@ export default function BookmarksGrid({
   folders,
   selectedFolderId,
   selectedBookmarkIds,
+  highlightedBookmarkId,
   isDragging,
   loading,
   currentPage,
@@ -77,18 +79,26 @@ export default function BookmarksGrid({
         {bookmarks.length > 0 && (
           <div className="flex flex-col">
             <div className="grid grid-cols-4 gap-2 mb-2">
-              {paginatedBookmarks.map((bookmark, index) => (
-                <BookmarkCard
-                  key={bookmark.id}
-                  bookmark={bookmark}
-                  isSelected={selectedBookmarkIds.has(bookmark.id)}
-                  selectionCount={selectionCount}
-                  isDraggingAny={isDragging}
-                  onDelete={onDeleteBookmark}
-                  onSelect={onSelectBookmark}
-                  index={index}
-                />
-              ))}
+              {paginatedBookmarks.map((bookmark, index) => {
+                const row = Math.floor(index / COLUMNS)
+                const col = index % COLUMNS
+                const isHighlighted = highlightedBookmarkId !== null &&
+                  highlightedBookmarkId[0] === row &&
+                  highlightedBookmarkId[1] === col
+                return (
+                  <BookmarkCard
+                    key={bookmark.id}
+                    bookmark={bookmark}
+                    isSelected={selectedBookmarkIds.has(bookmark.id)}
+                    isHighlighted={isHighlighted}
+                    selectionCount={selectionCount}
+                    isDraggingAny={isDragging}
+                    onDelete={onDeleteBookmark}
+                    onSelect={onSelectBookmark}
+                    index={index}
+                  />
+                )
+              })}
             </div>
           </div>
         )}
