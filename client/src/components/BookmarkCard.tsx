@@ -1,8 +1,9 @@
 import { memo, useState, useRef, useEffect, useCallback } from 'react'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import { formatDistanceToNow } from 'date-fns'
-import { Globe, FolderInput, Trash2, Star } from 'lucide-react'
+import { Globe, FolderInput, Trash2, Star, Pencil } from 'lucide-react'
 import type { Bookmark, Folder } from '../api'
+import { EditBookmarkDialog } from './EditBookmarkDialog'
 
 interface Props {
   bookmark: Bookmark
@@ -26,6 +27,7 @@ function hostname(url: string) {
 
 export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, highlighted, index, onDelete, onMove, onFavouriteBookmark, onKeyDown, onFocus }: Props) {
   const [imgError, setImgError] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
   const ref = useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
@@ -147,6 +149,14 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
             {bookmark.favorite ? 'Unfavourite' : 'Favourite'}
           </ContextMenu.Item>
 
+          <ContextMenu.Item
+            onSelect={() => setEditOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 cursor-default select-none focus:outline-none focus:bg-gray-50"
+          >
+            <Pencil size={14} className="text-gray-400" />
+            Edit bookmark
+          </ContextMenu.Item>
+
           <ContextMenu.Separator className="my-1 border-t border-gray-100" />
 
           <ContextMenu.Item
@@ -158,6 +168,8 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
           </ContextMenu.Item>
         </ContextMenu.Content>
       </ContextMenu.Portal>
+
+      <EditBookmarkDialog bookmark={bookmark} open={editOpen} onOpenChange={setEditOpen} />
     </ContextMenu.Root>
   )
 })

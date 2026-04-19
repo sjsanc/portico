@@ -61,7 +61,7 @@ export async function createFolder(name: string): Promise<Folder> {
   return res.json()
 }
 
-export async function updateBookmark(id: number, patch: Partial<Pick<Bookmark, 'favorite' | 'folder_id'>>): Promise<Bookmark> {
+export async function updateBookmark(id: number, patch: Partial<Pick<Bookmark, 'favorite' | 'folder_id' | 'name' | 'url' | 'note'>>): Promise<Bookmark> {
   const res = await fetch(`/bookmarks/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
