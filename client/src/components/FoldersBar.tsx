@@ -100,7 +100,7 @@ function FolderChip({ folder, active, onClick, onDeleted }: {
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild>
               <button
-                onClick={() => mutation.mutate()}
+                onClick={() => deleteMutation.mutate()}
                 className="px-3 py-1.5 text-sm font-medium text-white bg-rose-500 rounded-lg hover:bg-rose-600 transition-colors"
               >
                 Delete
