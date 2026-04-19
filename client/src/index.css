@@ -1,68 +1,11 @@
+@import "@radix-ui/themes/styles.css";
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
-@layer components {
-  .card-base {
-    @apply relative p-4 backdrop-blur-lg rounded-xl border transition-all duration-300 shadow-lg hover:shadow-xl;
-  }
-
-  .card-blue {
-    @apply relative p-4 backdrop-blur-lg rounded-xl border transition-all duration-300 bg-sky-400/15 border-white/20 hover:border-orange-500 shadow-lg hover:shadow-xl;
-  }
-
-  .card-glow {
-    @apply absolute inset-0 bg-gradient-to-br from-orange-400/20 to-orange-600/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300;
-  }
-
-  .input-base {
-    @apply h-[58px] px-4 bg-sky-400/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all shadow-md focus:shadow-lg;
-  }
-
-  .btn-glass {
-    @apply px-4 py-2 rounded-lg transition-all duration-200 font-semibold bg-sky-400/10 hover:bg-sky-400/20 text-white border border-white/20 hover:border-orange-500 shadow-md hover:shadow-lg;
-  }
-
-  .btn-primary {
-    @apply px-4 py-2 rounded-lg transition-all duration-200 font-semibold bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-600/50 disabled:cursor-not-allowed text-white shadow-md hover:shadow-lg;
-  }
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Custom scrollbar styling for bookmark grid */
-.scrollbar-styled {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(6, 182, 212, 0.3) rgba(255, 255, 255, 0.05);
-}
-
-.scrollbar-styled::-webkit-scrollbar {
-  width: 10px;
-}
-
-.scrollbar-styled::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  margin: 8px 0;
-  margin-left: 8px;
-}
-
-.scrollbar-styled::-webkit-scrollbar-thumb {
-  background: rgba(6, 182, 212, 0.3);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  transition: background 0.2s;
-}
-
-.scrollbar-styled::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.5);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+body {
+  margin: 0;
+  background: #f9fafb;
+  color: #111827;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }

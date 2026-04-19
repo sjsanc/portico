@@ -3,19 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [tailwindcss(), react()],
+  plugins: [react(), tailwindcss()],
   server: {
-    port: 5173,
+    port: 5174,
     proxy: {
-      '/bookmarks': 'http://localhost:8081',
-      '/folders': 'http://localhost:8081',
+      '/bookmarks': 'http://localhost:8082',
+      '/folders': 'http://localhost:8082',
     },
-  },
-  preview: {
-    port: 5000,
-  },
-  build: {
-    outDir: '../server/dist',
-    emptyOutDir: true,
   },
 })

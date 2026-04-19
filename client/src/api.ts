@@ -1,66 +1,86 @@
-import type { Bookmark, Folder, FolderId, SortField, SortDirection } from './types'
+export interface Bookmark {
+  id: number
+  name: string
+  url: string
+  favicon_url: string
+  note: string
+  folder_id: number | null
+  favorite: boolean
+  bookmarked_at: string
+  created_at: string
+}
 
-const API_BASE = 'http://localhost:8080'
+export interface Folder {
+  id: number
+  name: string
+  created_at: string
+  bookmarks: Bookmark[]
+}
+
+export type SortField = 'bookmarked_at' | 'name'
+export type SortOrder = 'asc' | 'desc'
+
+export async function fetchBookmarks(params: {
+  folder_id?: number | null
+  unsorted?: boolean
+  sortBy?: SortField
+  sortOrder?: SortOrder
+  url?: string
+  name?: string
+}): Promise<Bookmark[]> {
+  const query = new URLSearchParams()
+  if (params.folder_id != null) query.set('folder_id', String(params.folder_id))
+  if (params.unsorted) query.set('unsorted', 'true')
+  if (params.sortBy) query.set('sortBy', params.sortBy)
+  if (params.sortOrder) query.set('sortOrder', params.sortOrder)
+  if (params.url) query.set('url', params.url)
+  if (params.name) query.set('name', params.name)
+  const res = await fetch(`/bookmarks?${query}`)
+  if (!res.ok) throw new Error('Failed to fetch bookmarks')
+  return res.json()
+}
 
 export async function fetchFolders(): Promise<Folder[]> {
-  const response = await fetch(`${API_BASE}/folders`)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch folders: ${response.statusText}`)
-  }
-  return (await response.json()) ?? []
+  const res = await fetch('/folders')
+  if (!res.ok) throw new Error('Failed to fetch folders')
+  return res.json()
 }
 
-export async function fetchBookmarks(
-  folderId: FolderId,
-  sortField: SortField,
-  sortDirection: SortDirection
-): Promise<Bookmark[]> {
-  const params = new URLSearchParams({
-    sortBy: sortField,
-    sortOrder: sortDirection,
-  })
-
-  if (folderId === null) {
-    params.set('unsorted', 'true')
-  } else if (folderId !== 'all') {
-    params.set('folder_id', folderId.toString())
-  }
-
-  const response = await fetch(`${API_BASE}/bookmarks?${params}`)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch bookmarks: ${response.statusText}`)
-  }
-  return (await response.json()) ?? []
-}
-
-export async function deleteBookmark(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/bookmarks/${id}`, {
-    method: 'DELETE',
-  })
-  if (!response.ok) {
-    throw new Error(`Failed to delete bookmark: ${response.statusText}`)
-  }
-}
-
-export async function moveBookmark(bookmarkId: number, folderId: number | null): Promise<void> {
-  const response = await fetch(`${API_BASE}/bookmarks/${bookmarkId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ folder_id: folderId }),
-  })
-  if (!response.ok) {
-    throw new Error(`Failed to move bookmark: ${response.statusText}`)
-  }
+export async function deleteFolder(id: number): Promise<void> {
+  const res = await fetch(`/folders/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to delete folder')
 }
 
 export async function createFolder(name: string): Promise<Folder> {
-  const response = await fetch(`${API_BASE}/folders`, {
+  const res = await fetch('/folders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   })
-  if (!response.ok) {
-    throw new Error(`Failed to create folder: ${response.statusText}`)
-  }
-  return response.json()
+  if (!res.ok) throw new Error('Failed to create folder')
+  return res.json()
+}
+
+export async function updateBookmark(id: number, patch: Partial<Pick<Bookmark, 'favorite' | 'folder_id'>>): Promise<Bookmark> {
+  const res = await fetch(`/bookmarks/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  })
+  if (!res.ok) throw new Error('Failed to update bookmark')
+  return res.json()
+}
+
+export async function deleteBookmark(id: number): Promise<void> {
+  const res = await fetch(`/bookmarks/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to delete bookmark')
+}
+
+export async function moveBookmark(id: number, folder_id: number | null): Promise<void> {
+  const res = await fetch(`/bookmarks/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ folder_id }),
+  })
+  if (!res.ok) throw new Error('Failed to move bookmark')
 }

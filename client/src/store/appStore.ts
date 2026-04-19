@@ -1,100 +1,28 @@
 import { create } from 'zustand'
-import type { FolderId, SortField, SortDirection } from '../types'
+import type { SortField, SortOrder } from '../api'
+
+export type FolderId = 'all' | null | number
 
 interface AppState {
   selectedFolderId: FolderId
   sortField: SortField
-  sortDirection: SortDirection
-  isModalOpen: boolean
-  newFolderName: string
-  selectedBookmarkIds: Set<number>
-  setSelectedFolderId: (folderId: FolderId) => void
+  sortOrder: SortOrder
+  page: number
+
+  setSelectedFolderId: (id: FolderId) => void
   setSortField: (field: SortField) => void
-  setSortDirection: (direction: SortDirection) => void
-  setIsModalOpen: (open: boolean) => void
-  setNewFolderName: (name: string) => void
-  toggleBookmarkSelection: (id: number) => void
-  clearBookmarkSelection: () => void
-}
-
-function getInitialState(): Pick<AppState, 'selectedFolderId' | 'sortField' | 'sortDirection'> {
-  const params = new URLSearchParams(window.location.search)
-
-  const selectedFolderId: FolderId = params.get('unsorted') === 'true'
-    ? null
-    : params.has('folder_id')
-      ? parseInt(params.get('folder_id')!, 10)
-      : 'all'
-
-  const sortField = (params.get('sortBy') as SortField) || 'bookmarked_at'
-  const sortDirection = (params.get('sortOrder') as SortDirection) || 'desc'
-
-  return { selectedFolderId, sortField, sortDirection }
-}
-
-function updateSearchParams(updates: Partial<{
-  folder_id: FolderId
-  sortBy: SortField
-  sortOrder: SortDirection
-}>): void {
-  const params = new URLSearchParams(window.location.search)
-
-  if (updates.folder_id !== undefined) {
-    params.delete('folder_id')
-    params.delete('unsorted')
-
-    if (updates.folder_id === null) {
-      params.set('unsorted', 'true')
-    } else if (updates.folder_id !== 'all') {
-      params.set('folder_id', updates.folder_id.toString())
-    }
-  }
-
-  if (updates.sortBy !== undefined) {
-    params.set('sortBy', updates.sortBy)
-  }
-
-  if (updates.sortOrder !== undefined) {
-    params.set('sortOrder', updates.sortOrder)
-  }
-
-  const newUrl = `${window.location.pathname}?${params}`
-  window.history.pushState({}, '', newUrl)
+  setSortOrder: (order: SortOrder) => void
+  setPage: (page: number) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  ...getInitialState(),
-  isModalOpen: false,
-  newFolderName: '',
-  selectedBookmarkIds: new Set(),
+  selectedFolderId: 'all',
+  sortField: 'bookmarked_at',
+  sortOrder: 'desc',
+  page: 1,
 
-  setSelectedFolderId: (folderId) => {
-    set({ selectedFolderId: folderId, selectedBookmarkIds: new Set() })
-    updateSearchParams({ folder_id: folderId })
-  },
-
-  setSortField: (field) => {
-    set({ sortField: field })
-    updateSearchParams({ sortBy: field })
-  },
-
-  setSortDirection: (direction) => {
-    set({ sortDirection: direction })
-    updateSearchParams({ sortOrder: direction })
-  },
-
-  setIsModalOpen: (open) => set({ isModalOpen: open }),
-  setNewFolderName: (name) => set({ newFolderName: name }),
-
-  toggleBookmarkSelection: (id) => set((state) => {
-    const newSet = new Set(state.selectedBookmarkIds)
-    if (newSet.has(id)) {
-      newSet.delete(id)
-    } else {
-      newSet.add(id)
-    }
-    return { selectedBookmarkIds: newSet }
-  }),
-
-  clearBookmarkSelection: () => set({ selectedBookmarkIds: new Set() }),
+  setSelectedFolderId: (id) => set({ selectedFolderId: id, page: 1 }),
+  setSortField: (field) => set({ sortField: field, page: 1 }),
+  setSortOrder: (order) => set({ sortOrder: order, page: 1 }),
+  setPage: (page) => set({ page }),
 }))

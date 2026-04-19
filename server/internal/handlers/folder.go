@@ -56,18 +56,19 @@ func GetFolder(w http.ResponseWriter, r *http.Request) {
 // UpdateFolder handles PUT requests to update a folder
 func UpdateFolder(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	var folder models.Folder
+	var updates map[string]interface{}
 
-	if err := json.NewDecoder(r.Body).Decode(&folder); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := database.DB.Model(&models.Folder{}).Where("id = ?", id).Updates(folder).Error; err != nil {
+	if err := database.DB.Model(&models.Folder{}).Where("id = ?", id).Updates(updates).Error; err != nil {
 		http.Error(w, "Failed to update folder", http.StatusInternalServerError)
 		return
 	}
 
+	var folder models.Folder
 	if err := database.DB.Preload("Bookmarks").First(&folder, id).Error; err != nil {
 		http.Error(w, "Folder not found", http.StatusNotFound)
 		return
