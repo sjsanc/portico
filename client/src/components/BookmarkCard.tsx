@@ -56,8 +56,6 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
         <a
           ref={ref}
           href={bookmark.url}
-          target="_blank"
-          rel="noopener noreferrer"
           tabIndex={0}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
