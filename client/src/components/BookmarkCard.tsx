@@ -1,7 +1,7 @@
 import { memo, useState, useRef, useEffect, useCallback } from 'react'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import { formatDistanceToNow } from 'date-fns'
-import { Globe, FolderInput, Trash2, Star, Pencil } from 'lucide-react'
+import { Globe, FolderInput, Trash2, Star, Pencil, AlertTriangle } from 'lucide-react'
 import type { Bookmark, Folder } from '../api'
 import { recordVisit } from '../api'
 import { EditBookmarkDialog } from './EditBookmarkDialog'
@@ -43,6 +43,15 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
     }
   })()
 
+  const brokenSince = (() => {
+    if (!bookmark.link_broken || !bookmark.last_checked_at) return null
+    try {
+      return formatDistanceToNow(new Date(bookmark.last_checked_at), { addSuffix: true })
+    } catch {
+      return null
+    }
+  })()
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => onKeyDown(e, index), [onKeyDown, index])
   const handleFocus = useCallback(() => onFocus(index), [onFocus, index])
   const handleClick = useCallback(() => recordVisit(bookmark.id), [bookmark.id])
@@ -68,8 +77,15 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
               : 'border-transparent hover:border-border-strong'
             }`}
         >
-          <div className="flex-shrink-0 w-8 h-8 rounded-md bg-surface-hover border border-border flex items-center justify-center overflow-hidden">
-            {bookmark.favicon_url && !imgError ? (
+          <div
+            className={`relative flex-shrink-0 w-8 h-8 rounded-md border flex items-center justify-center overflow-hidden ${
+              bookmark.link_broken ? 'bg-danger-soft border-danger-strong' : 'bg-surface-hover border-border'
+            }`}
+            title={bookmark.link_broken ? (brokenSince ? `Unreachable · last checked ${brokenSince}` : 'Unreachable') : undefined}
+          >
+            {bookmark.link_broken ? (
+              <AlertTriangle size={20} className="text-danger-strong" />
+            ) : bookmark.favicon_url && !imgError ? (
               <img
                 src={bookmark.favicon_url}
                 alt=""

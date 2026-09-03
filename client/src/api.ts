@@ -10,6 +10,8 @@ export interface Bookmark {
   created_at: string
   visits: number
   last_visited_at: string | null
+  link_broken: boolean
+  last_checked_at: string | null
 }
 
 export interface Folder {
@@ -91,4 +93,9 @@ export function recordVisit(id: number): void {
   const url = `/bookmarks/${id}/visit`
   if (navigator.sendBeacon?.(url)) return
   fetch(url, { method: 'POST', keepalive: true }).catch(() => {})
+}
+
+export async function checkLinks(): Promise<void> {
+  const res = await fetch('/bookmarks/check-links', { method: 'POST' })
+  if (!res.ok) throw new Error('Failed to trigger link check')
 }

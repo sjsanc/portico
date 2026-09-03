@@ -6,6 +6,7 @@ import (
 	"os"
 	"server/internal/database"
 	"server/internal/handlers"
+	"server/internal/services"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -40,6 +41,8 @@ func main() {
 
 	log.Println("Database initialized successfully")
 
+	services.StartLinkCheckScheduler()
+
 	// Get port from environment, default to 8080
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -60,6 +63,7 @@ func main() {
 	mux.HandleFunc("PUT /bookmarks/{id}", handlers.UpdateBookmark)
 	mux.HandleFunc("DELETE /bookmarks/{id}", handlers.DeleteBookmark)
 	mux.HandleFunc("POST /bookmarks/{id}/visit", handlers.VisitBookmark)
+	mux.HandleFunc("POST /bookmarks/check-links", handlers.CheckLinks)
 
 	mux.HandleFunc("POST /folders", handlers.CreateFolder)
 	mux.HandleFunc("GET /folders", handlers.GetAllFolders)

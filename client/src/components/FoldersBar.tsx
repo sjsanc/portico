@@ -8,6 +8,7 @@ import { NewFolderDialog } from './NewFolderDialog'
 interface Props {
   folders: Folder[]
   unsortedCount: number
+  brokenCount: number
   selected: FolderId
   onSelect: (id: FolderId) => void
 }
@@ -114,7 +115,7 @@ function FolderChip({ folder, active, onClick, onDeleted }: {
   )
 }
 
-export function FoldersBar({ folders, unsortedCount, selected, onSelect }: Props) {
+export function FoldersBar({ folders, unsortedCount, brokenCount, selected, onSelect }: Props) {
   const totalCount = folders.reduce((n, f) => n + (f.bookmarks?.length ?? 0), 0) + unsortedCount
   return (
     <div className="flex items-stretch gap-2">
@@ -130,6 +131,12 @@ export function FoldersBar({ folders, unsortedCount, selected, onSelect }: Props
           count={unsortedCount}
           active={selected === null}
           onClick={() => onSelect(selected === null ? 'all' : null)}
+        />
+        <SpecialChip
+          label="Broken"
+          count={brokenCount}
+          active={selected === 'broken'}
+          onClick={() => onSelect(selected === 'broken' ? 'all' : 'broken')}
         />
       </div>
       <div className="flex items-center gap-2 px-2 py-2 bg-fill gap-1 rounded-lg flex-1">

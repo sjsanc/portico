@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"server/internal/database"
 	"server/internal/models"
+	"server/internal/services"
 	"server/internal/utils"
 	"time"
 
@@ -144,6 +145,13 @@ func VisitBookmark(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// CheckLinks handles POST requests to trigger an on-demand link check for
+// all bookmarks. It runs in the background and returns immediately.
+func CheckLinks(w http.ResponseWriter, r *http.Request) {
+	go services.CheckAllLinks()
+	w.WriteHeader(http.StatusAccepted)
 }
 
 // DeleteBookmark handles DELETE requests to remove a bookmark

@@ -16,4 +16,6 @@ type Bookmark struct {
 	BookmarkedAt  time.Time  `gorm:"autoCreateTime" json:"bookmarked_at"`
 	Visits        int        `gorm:"not null;default:0" json:"visits"`
 	LastVisitedAt *time.Time `json:"last_visited_at"`
+	LinkBroken    bool       `gorm:"not null;default:false" json:"link_broken"`
+	LastCheckedAt *time.Time `json:"last_checked_at"`
 }

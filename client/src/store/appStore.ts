@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { SortField, SortOrder } from '../api'
 
-export type FolderId = 'all' | null | number
+export type FolderId = 'all' | 'broken' | null | number
 export type ThemeId = 'light' | 'dark'
 
 interface AppState {

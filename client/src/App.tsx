@@ -33,6 +33,8 @@ export default function App() {
 
     if (selectedFolderId === null) {
       bm = bm.filter((b) => b.folder_id == null)
+    } else if (selectedFolderId === 'broken') {
+      bm = bm.filter((b) => b.link_broken)
     } else if (selectedFolderId !== 'all') {
       bm = bm.filter((b) => b.folder_id === selectedFolderId)
     }
@@ -88,6 +90,7 @@ export default function App() {
           <FoldersBar
             folders={folders}
             unsortedCount={allBookmarks.filter((b) => b.folder_id == null).length}
+            brokenCount={allBookmarks.filter((b) => b.link_broken).length}
             selected={selectedFolderId}
             onSelect={(id) => { setSelectedFolderId(id); setPage(1) }}
           />
