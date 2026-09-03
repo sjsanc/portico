@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Caacupe+One&display=swap');
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
@@ -25,6 +26,9 @@
   --danger-soft: #fef2f2;
   --star: #facc15;
   --overlay: rgb(0 0 0 / 0.3);
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.12);
 }
 
 :root[data-theme="dark"] {
@@ -54,6 +58,9 @@
   --danger-soft: #2a1416;
   --star: #facc15;
   --overlay: rgb(0 0 0 / 0.6);
+  --glass-bg: rgba(18, 18, 22, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6);
 }
 
 /* A black drop shadow is invisible against a near-black surface - Tailwind's
@@ -91,6 +98,21 @@
   --color-danger-soft: var(--danger-soft);
   --color-star: var(--star);
   --color-overlay: var(--overlay);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --font-brand: 'Caacupe One', cursive;
+}
+
+.font-brand {
+  font-family: 'Caacupe One', cursive;
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 
 body {

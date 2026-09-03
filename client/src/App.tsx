@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState, startTransition } from 'react'
+import { useMemo, useRef, useState, useEffect, startTransition } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { DoorOpen } from 'lucide-react'
-import { fetchBookmarks, fetchFolders, recordVisit } from './api'
+import { fetchBookmarks, fetchFolders, fetchWallpaperToday, recordVisit } from './api'
 import { useAppStore } from './store/appStore'
 import { BookmarksGrid } from './components/BookmarksGrid'
 import { SearchBar, type SearchBarHandle } from './components/SearchBar'
@@ -27,6 +27,29 @@ export default function App() {
     queryKey: ['bookmarks', sortField, sortOrder],
     queryFn: () => fetchBookmarks({ sortBy: sortField, sortOrder }),
   })
+
+  const { data: wallpaper } = useQuery({
+    queryKey: ['wallpaper'],
+    queryFn: fetchWallpaperToday,
+  })
+
+  const [hasWallpaper, setHasWallpaper] = useState(() => {
+    try {
+      return localStorage.getItem('portico-has-wallpaper') === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    if (wallpaper) {
+      const available = Boolean(wallpaper.available)
+      setHasWallpaper(available)
+      try {
+        localStorage.setItem('portico-has-wallpaper', available ? 'true' : 'false')
+      } catch { }
+    }
+  }, [wallpaper])
 
   const filtered = useMemo(() => {
     let bm = allBookmarks
@@ -58,13 +81,31 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg">
-      <div className="max-w-screen-2xl mx-auto px-8 py-6">
+    <div
+      className="min-h-screen bg-bg flex justify-center items-start"
+      style={
+        hasWallpaper
+          ? {
+            backgroundImage: `url(${wallpaper?.url || '/wallpaper'})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
+            backgroundRepeat: 'no-repeat',
+          }
+          : undefined
+      }
+    >
+      <div
+        className={`w-full max-w-screen-2xl p-6 rounded-3xl my-4 sm:my-6 md:my-8 mx-4 sm:mx-6 md:mx-8 transition-colors duration-150 ${hasWallpaper
+          ? 'glass-panel'
+          : 'bg-surface border border-border shadow-sm'
+          }`}
+      >
         <div className="mb-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <DoorOpen size={20} className="text-accent" />
-              <h1 className="text-lg font-semibold text-fg tracking-tight">Portico</h1>
+              <DoorOpen size={26} className="text-accent" />
+              <h1 className="text-2xl font-brand text-fg tracking-wide">Portico</h1>
             </div>
             <div className="flex items-center gap-2">
               <SortControls />

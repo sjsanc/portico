@@ -71,6 +71,9 @@ func main() {
 	mux.HandleFunc("PUT /folders/{id}", handlers.UpdateFolder)
 	mux.HandleFunc("DELETE /folders/{id}", handlers.DeleteFolder)
 
+	mux.HandleFunc("GET /wallpaper", handlers.GetWallpaper)
+	mux.HandleFunc("GET /wallpaper/today", handlers.GetWallpaperToday)
+
 	// In production, serve static files
 	if env == "production" {
 		fs := http.FileServer(http.Dir("./dist"))

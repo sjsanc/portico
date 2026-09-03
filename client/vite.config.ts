@@ -13,6 +13,7 @@ export default defineConfig({
     proxy: {
       '/bookmarks': 'http://localhost:8081',
       '/folders': 'http://localhost:8081',
+      '/wallpaper': 'http://localhost:8081',
     },
   },
 })

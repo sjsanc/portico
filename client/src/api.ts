@@ -99,3 +99,21 @@ export async function checkLinks(): Promise<void> {
   const res = await fetch('/bookmarks/check-links', { method: 'POST' })
   if (!res.ok) throw new Error('Failed to trigger link check')
 }
+
+export interface WallpaperInfo {
+  available: boolean
+  filename?: string
+  date?: string
+  url?: string
+}
+
+export async function fetchWallpaperToday(): Promise<WallpaperInfo> {
+  try {
+    const res = await fetch('/wallpaper/today')
+    if (!res.ok) return { available: false }
+    return await res.json()
+  } catch {
+    return { available: false }
+  }
+}
+
