@@ -8,6 +8,8 @@ export interface Bookmark {
   favorite: boolean
   bookmarked_at: string
   created_at: string
+  visits: number
+  last_visited_at: string | null
 }
 
 export interface Folder {
@@ -17,7 +19,7 @@ export interface Folder {
   bookmarks: Bookmark[]
 }
 
-export type SortField = 'bookmarked_at' | 'name'
+export type SortField = 'bookmarked_at' | 'name' | 'visits'
 export type SortOrder = 'asc' | 'desc'
 
 export async function fetchBookmarks(params: {
@@ -83,4 +85,10 @@ export async function moveBookmark(id: number, folder_id: number | null): Promis
     body: JSON.stringify({ folder_id }),
   })
   if (!res.ok) throw new Error('Failed to move bookmark')
+}
+
+export function recordVisit(id: number): void {
+  const url = `/bookmarks/${id}/visit`
+  if (navigator.sendBeacon?.(url)) return
+  fetch(url, { method: 'POST', keepalive: true }).catch(() => {})
 }

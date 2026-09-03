@@ -61,7 +61,7 @@ export function BookmarksGrid({ bookmarks, folders, isLoading, highlightedIndex,
     return (
       <div className="grid grid-cols-4 gap-2">
         {Array.from({ length: 28 }).map((_, i) => (
-          <div key={i} className="h-[76px] bg-gray-100 rounded-lg animate-pulse" />
+          <div key={i} className="h-[76px] bg-fill rounded-lg animate-pulse" />
         ))}
       </div>
     )
@@ -69,7 +69,7 @@ export function BookmarksGrid({ bookmarks, folders, isLoading, highlightedIndex,
 
   if (bookmarks.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-sm text-gray-400">
+      <div className="flex items-center justify-center h-48 text-sm text-fg-subtle">
         No bookmarks found
       </div>
     )

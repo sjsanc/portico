@@ -6,6 +6,9 @@ import (
 	"server/internal/database"
 	"server/internal/models"
 	"server/internal/utils"
+	"time"
+
+	"gorm.io/gorm"
 )
 
 // CreateBookmark handles POST requests to create a new bookmark
@@ -70,6 +73,7 @@ func GetAllBookmarks(w http.ResponseWriter, r *http.Request) {
 	validSortFields := map[string]bool{
 		"bookmarked_at": true,
 		"name":          true,
+		"visits":        true,
 	}
 	if !validSortFields[sortBy] {
 		sortBy = "bookmarked_at"
@@ -102,6 +106,10 @@ func UpdateBookmark(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Visit tracking is only writable via VisitBookmark - strip it from arbitrary client updates
+	delete(updates, "visits")
+	delete(updates, "last_visited_at")
+
 	if err := database.DB.Model(&models.Bookmark{}).Where("id = ?", id).Updates(updates).Error; err != nil {
 		http.Error(w, "Failed to update bookmark", http.StatusInternalServerError)
 		return
@@ -115,6 +123,27 @@ func UpdateBookmark(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(bookmark)
+}
+
+// VisitBookmark handles POST requests to record a bookmark visit
+func VisitBookmark(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	now := time.Now()
+
+	result := database.DB.Model(&models.Bookmark{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"visits":          gorm.Expr("visits + 1"),
+		"last_visited_at": now,
+	})
+	if result.Error != nil {
+		http.Error(w, "Failed to record visit", http.StatusInternalServerError)
+		return
+	}
+	if result.RowsAffected == 0 {
+		http.Error(w, "Bookmark not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // DeleteBookmark handles DELETE requests to remove a bookmark

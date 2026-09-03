@@ -1,11 +1,104 @@
-@import "@radix-ui/themes/styles.css";
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
+:root,
+:root[data-theme="light"] {
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --surface-hover: #f9fafb;
+  --fill: #f3f4f6;
+  --fill-hover: #e5e7eb;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --fg: #111827;
+  --fg-muted: #374151;
+  --fg-subtle: #9ca3af;
+  --fg-faint: #d1d5db;
+  --accent: #f43f5e;
+  --accent-hover: #e11d48;
+  --accent-fg: #ffffff;
+  --accent-soft: #fb7185;
+  --accent-border: #fda4af;
+  --accent-ring: #fecdd3;
+  --danger: #ef4444;
+  --danger-strong: #dc2626;
+  --danger-soft: #fef2f2;
+  --star: #facc15;
+  --overlay: rgb(0 0 0 / 0.3);
+}
+
+:root[data-theme="dark"] {
+  /* Zinc ramp: bg -> fill (recessed tray) -> surface (card, clearly lifted)
+     -> border (whisper, barely above surface) -> fill-hover/surface-hover
+     -> border-strong (the hover-reveal outline). Elevation comes from the
+     fill jump, not the border - borders stay quiet until interaction. */
+  --bg: #09090b;
+  --fill: #18181b;
+  --surface: #27272a;
+  --border: #313136;
+  --fill-hover: #33333a;
+  --surface-hover: #3f3f46;
+  --border-strong: #52525b;
+  --fg: #fafafa;
+  --fg-muted: #d4d4d8;
+  --fg-subtle: #71717a;
+  --fg-faint: #52525b;
+  --accent: #fb7185;
+  --accent-hover: #f43f5e;
+  --accent-fg: #18181b;
+  --accent-soft: #fb7185;
+  --accent-border: #9f1239;
+  --accent-ring: #881337;
+  --danger: #f87171;
+  --danger-strong: #ef4444;
+  --danger-soft: #2a1416;
+  --star: #facc15;
+  --overlay: rgb(0 0 0 / 0.6);
+}
+
+/* A black drop shadow is invisible against a near-black surface - Tailwind's
+   shadow-* utilities hardcode var(--tw-shadow-color, #0000001a) rather than
+   reading a themeable token, so the only way to kill them per-theme is to
+   override the compiled utility directly. Elevation in dark mode comes from
+   the surface/bg fill jump instead (see the dark palette above). */
+:root[data-theme="dark"] .shadow-sm,
+:root[data-theme="dark"] .shadow-md,
+:root[data-theme="dark"] .shadow-lg,
+:root[data-theme="dark"] .hover\:shadow-md:hover {
+  box-shadow: none;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-fill: var(--fill);
+  --color-fill-hover: var(--fill-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-faint: var(--fg-faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+  --color-accent-ring: var(--accent-ring);
+  --color-danger: var(--danger);
+  --color-danger-strong: var(--danger-strong);
+  --color-danger-soft: var(--danger-soft);
+  --color-star: var(--star);
+  --color-overlay: var(--overlay);
+}
+
 body {
   margin: 0;
-  background: #f9fafb;
-  color: #111827;
-  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    'Open Sans', system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

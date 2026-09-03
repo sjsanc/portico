@@ -59,6 +59,7 @@ func main() {
 	mux.HandleFunc("GET /bookmarks", handlers.GetAllBookmarks)
 	mux.HandleFunc("PUT /bookmarks/{id}", handlers.UpdateBookmark)
 	mux.HandleFunc("DELETE /bookmarks/{id}", handlers.DeleteBookmark)
+	mux.HandleFunc("POST /bookmarks/{id}/visit", handlers.VisitBookmark)
 
 	mux.HandleFunc("POST /folders", handlers.CreateFolder)
 	mux.HandleFunc("GET /folders", handlers.GetAllFolders)

@@ -11,8 +11,8 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      '/bookmarks': 'http://localhost:8082',
-      '/folders': 'http://localhost:8082',
+      '/bookmarks': 'http://localhost:8081',
+      '/folders': 'http://localhost:8081',
     },
   },
 })

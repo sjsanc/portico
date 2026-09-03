@@ -1,12 +1,14 @@
 import { useMemo, useRef, useState, startTransition } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { DoorOpen } from 'lucide-react'
-import { fetchBookmarks, fetchFolders } from './api'
+import { fetchBookmarks, fetchFolders, recordVisit } from './api'
 import { useAppStore } from './store/appStore'
 import { BookmarksGrid } from './components/BookmarksGrid'
 import { SearchBar, type SearchBarHandle } from './components/SearchBar'
 import { Pagination } from './components/Pagination'
 import { FoldersBar } from './components/FoldersBar'
+import { SortControls } from './components/SortControls'
+import { ThemePicker } from './components/ThemePicker'
 
 const PAGE_SIZE = 32
 
@@ -54,21 +56,34 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg">
       <div className="max-w-screen-2xl mx-auto px-8 py-6">
         <div className="mb-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <DoorOpen size={20} className="text-rose-500" />
-              <h1 className="text-lg font-semibold text-gray-900 tracking-tight">Portico</h1>
+              <DoorOpen size={20} className="text-accent" />
+              <h1 className="text-lg font-semibold text-fg tracking-tight">Portico</h1>
             </div>
-            <Pagination page={safePage} totalPages={totalPages} onPage={setPage} />
+            <div className="flex items-center gap-2">
+              <SortControls />
+              <Pagination page={safePage} totalPages={totalPages} onPage={setPage} />
+              <ThemePicker />
+            </div>
           </div>
           <SearchBar
             ref={searchRef}
             onChange={(q) => { setSearch(q); startTransition(() => setPage(1)); setHighlightedIndex(null) }}
             onClear={() => { setSearch(''); startTransition(() => setPage(1)) }}
             onArrowDown={() => setHighlightedIndex(0)}
+            onSubmit={(q) => {
+              const top = filtered[0]
+              if (top) {
+                recordVisit(top.id)
+                window.location.assign(top.url)
+              } else {
+                window.location.assign(`https://www.google.com/search?q=${encodeURIComponent(q)}`)
+              }
+            }}
           />
           <FoldersBar
             folders={folders}

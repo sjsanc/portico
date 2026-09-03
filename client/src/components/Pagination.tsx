@@ -19,7 +19,7 @@ function PagBtn({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border bg-surface text-fg-subtle hover:bg-surface-hover hover:text-fg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
     >
       {children}
     </button>
@@ -37,7 +37,7 @@ export function Pagination({ page, totalPages, onPage }: Props) {
       <PagBtn disabled={page === 1} onClick={() => onPage(page - 1)}>
         <ChevronLeft size={13} />
       </PagBtn>
-      <span className="text-xs text-gray-400 px-2 tabular-nums">
+      <span className="text-xs text-fg-subtle px-2 tabular-nums">
         {page} / {totalPages}
       </span>
       <PagBtn disabled={page === totalPages} onClick={() => onPage(page + 1)}>

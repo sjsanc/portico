@@ -3,6 +3,7 @@ import * as ContextMenu from '@radix-ui/react-context-menu'
 import { formatDistanceToNow } from 'date-fns'
 import { Globe, FolderInput, Trash2, Star, Pencil } from 'lucide-react'
 import type { Bookmark, Folder } from '../api'
+import { recordVisit } from '../api'
 import { EditBookmarkDialog } from './EditBookmarkDialog'
 
 interface Props {
@@ -44,6 +45,7 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => onKeyDown(e, index), [onKeyDown, index])
   const handleFocus = useCallback(() => onFocus(index), [onFocus, index])
+  const handleClick = useCallback(() => recordVisit(bookmark.id), [bookmark.id])
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -57,15 +59,16 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
           ref={ref}
           href={bookmark.url}
           tabIndex={0}
+          onClick={handleClick}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          className={`group relative flex items-start gap-3 p-3 bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-150 no-underline focus:outline-none
+          className={`group relative flex items-start gap-3 p-3 bg-surface border rounded-lg shadow-sm hover:shadow-md hover:bg-surface-hover transition-all duration-150 no-underline focus:outline-none
             ${highlighted
-              ? 'border-rose-300 ring-2 ring-rose-200'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-accent-border ring-2 ring-accent-ring'
+              : 'border-transparent hover:border-border-strong'
             }`}
         >
-          <div className="flex-shrink-0 w-8 h-8 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+          <div className="flex-shrink-0 w-8 h-8 rounded-md bg-surface-hover border border-border flex items-center justify-center overflow-hidden">
             {bookmark.favicon_url && !imgError ? (
               <img
                 src={bookmark.favicon_url}
@@ -76,28 +79,30 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
                 className="w-4 h-4 object-contain"
               />
             ) : (
-              <Globe size={14} className="text-gray-400" />
+              <Globe size={14} className="text-fg-subtle" />
             )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate leading-snug">
+            <p className="text-sm font-medium text-fg truncate leading-snug">
               {bookmark.name || hostname(bookmark.url)}
             </p>
-            <p className="text-xs text-gray-400 truncate mt-0.5">{hostname(bookmark.url)}</p>
-            <p className="text-xs text-gray-300 mt-1">{age}</p>
+            <p className="text-xs text-fg-subtle truncate mt-0.5">{hostname(bookmark.url)}</p>
+            <p className="text-xs text-fg-faint mt-1">
+              {age}{bookmark.visits > 0 && ` · ${bookmark.visits} ${bookmark.visits === 1 ? 'visit' : 'visits'}`}
+            </p>
           </div>
 
           {bookmark.favorite && (
-            <span className="absolute bottom-2 right-2 text-yellow-400 text-xs leading-none">★</span>
+            <span className="absolute bottom-2 right-2 text-star text-xs leading-none">★</span>
           )}
           {bookmark.folder_id == null && (
-            <span className={`absolute bottom-2 w-1.5 h-1.5 rounded-full bg-rose-400 ${bookmark.favorite ? 'right-5' : 'right-2'}`} />
+            <span className={`absolute bottom-2 w-1.5 h-1.5 rounded-full bg-accent-soft ${bookmark.favorite ? 'right-5' : 'right-2'}`} />
           )}
 
           <button
             onClick={handleDelete}
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-gray-300 hover:text-red-500 hover:bg-red-50 text-base leading-none transition-all duration-100"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded-md text-fg-faint hover:text-danger hover:bg-danger-soft text-base leading-none transition-all duration-100"
             aria-label="Delete bookmark"
           >
             ×
@@ -106,33 +111,33 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
       </ContextMenu.Trigger>
 
       <ContextMenu.Portal>
-        <ContextMenu.Content className="z-50 min-w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-sm focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 duration-100">
+        <ContextMenu.Content className="z-50 min-w-48 bg-surface border border-border rounded-lg shadow-lg py-1 text-sm focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 duration-100">
           <ContextMenu.Sub>
-            <ContextMenu.SubTrigger className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 cursor-default select-none focus:outline-none focus:bg-gray-50">
-              <FolderInput size={14} className="text-gray-400" />
+            <ContextMenu.SubTrigger className="flex items-center gap-2 px-3 py-2 text-fg-muted hover:bg-surface-hover cursor-default select-none focus:outline-none focus:bg-surface-hover">
+              <FolderInput size={14} className="text-fg-subtle" />
               Move to folder
-              <span className="ml-auto text-gray-300">›</span>
+              <span className="ml-auto text-fg-faint">›</span>
             </ContextMenu.SubTrigger>
             <ContextMenu.Portal>
-              <ContextMenu.SubContent className="z-50 min-w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-sm focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 duration-100">
+              <ContextMenu.SubContent className="z-50 min-w-40 bg-surface border border-border rounded-lg shadow-lg py-1 text-sm focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 duration-100">
                 <ContextMenu.Item
                   onSelect={() => onMove(bookmark.id, null)}
                   disabled={bookmark.folder_id == null}
-                  className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 cursor-default select-none focus:outline-none focus:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                  className="flex items-center gap-2 px-3 py-2 text-fg-muted hover:bg-surface-hover cursor-default select-none focus:outline-none focus:bg-surface-hover disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Unsorted
-                  {bookmark.folder_id == null && <span className="ml-auto text-rose-400">✓</span>}
+                  {bookmark.folder_id == null && <span className="ml-auto text-accent-soft">✓</span>}
                 </ContextMenu.Item>
-                {folders.length > 0 && <ContextMenu.Separator className="my-1 border-t border-gray-100" />}
+                {folders.length > 0 && <ContextMenu.Separator className="my-1 border-t border-border" />}
                 {folders.map((f) => (
                   <ContextMenu.Item
                     key={f.id}
                     onSelect={() => onMove(bookmark.id, f.id)}
                     disabled={bookmark.folder_id === f.id}
-                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 cursor-default select-none focus:outline-none focus:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                    className="flex items-center gap-2 px-3 py-2 text-fg-muted hover:bg-surface-hover cursor-default select-none focus:outline-none focus:bg-surface-hover disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {f.name}
-                    {bookmark.folder_id === f.id && <span className="ml-auto text-rose-400">✓</span>}
+                    {bookmark.folder_id === f.id && <span className="ml-auto text-accent-soft">✓</span>}
                   </ContextMenu.Item>
                 ))}
               </ContextMenu.SubContent>
@@ -141,25 +146,25 @@ export const BookmarkCard = memo(function BookmarkCard({ bookmark, folders, high
 
           <ContextMenu.Item
             onSelect={() => onFavouriteBookmark(bookmark.id, !bookmark.favorite)}
-            className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 cursor-default select-none focus:outline-none focus:bg-gray-50"
+            className="flex items-center gap-2 px-3 py-2 text-fg-muted hover:bg-surface-hover cursor-default select-none focus:outline-none focus:bg-surface-hover"
           >
-            <Star size={14} className={bookmark.favorite ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'} />
+            <Star size={14} className={bookmark.favorite ? 'text-star fill-star' : 'text-fg-subtle'} />
             {bookmark.favorite ? 'Unfavourite' : 'Favourite'}
           </ContextMenu.Item>
 
           <ContextMenu.Item
             onSelect={() => setEditOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 cursor-default select-none focus:outline-none focus:bg-gray-50"
+            className="flex items-center gap-2 px-3 py-2 text-fg-muted hover:bg-surface-hover cursor-default select-none focus:outline-none focus:bg-surface-hover"
           >
-            <Pencil size={14} className="text-gray-400" />
+            <Pencil size={14} className="text-fg-subtle" />
             Edit bookmark
           </ContextMenu.Item>
 
-          <ContextMenu.Separator className="my-1 border-t border-gray-100" />
+          <ContextMenu.Separator className="my-1 border-t border-border" />
 
           <ContextMenu.Item
             onSelect={() => onDelete(bookmark.id)}
-            className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 cursor-default select-none focus:outline-none focus:bg-red-50"
+            className="flex items-center gap-2 px-3 py-2 text-danger-strong hover:bg-danger-soft cursor-default select-none focus:outline-none focus:bg-danger-soft"
           >
             <Trash2 size={14} />
             Delete bookmark

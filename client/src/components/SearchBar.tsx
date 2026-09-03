@@ -5,6 +5,7 @@ interface Props {
   onChange: (q: string) => void
   onArrowDown: () => void
   onClear: () => void
+  onSubmit: (q: string) => void
 }
 
 export interface SearchBarHandle {
@@ -13,7 +14,7 @@ export interface SearchBarHandle {
 }
 
 export const SearchBar = forwardRef<SearchBarHandle, Props>(function SearchBar(
-  { onChange, onArrowDown, onClear },
+  { onChange, onArrowDown, onClear, onSubmit },
   ref
 ) {
   const [value, setValue] = useState('')
@@ -33,7 +34,7 @@ export const SearchBar = forwardRef<SearchBarHandle, Props>(function SearchBar(
 
   return (
     <div className="relative flex items-center w-full">
-      <Search size={18} className="absolute left-4 text-gray-400 pointer-events-none" />
+      <Search size={18} className="absolute left-4 text-fg-subtle pointer-events-none" />
       <input
         ref={inputRef}
         type="text"
@@ -45,15 +46,15 @@ export const SearchBar = forwardRef<SearchBarHandle, Props>(function SearchBar(
             e.preventDefault()
             onArrowDown()
           } else if (e.key === 'Enter' && value.trim()) {
-            window.open(`https://www.google.com/search?q=${encodeURIComponent(value.trim())}`, '_blank')
+            onSubmit(value.trim())
           }
         }}
-        className="w-full pl-11 pr-10 py-3 text-base bg-white border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-rose-300 transition"
+        className="w-full pl-11 pr-10 py-3 text-base bg-surface border border-border rounded-lg shadow-sm placeholder-fg-subtle focus:outline-none focus:ring-2 focus:ring-accent-ring focus:border-accent-border transition"
       />
       {value && (
         <button
           onClick={() => handleChange('')}
-          className="absolute right-3 text-gray-300 hover:text-gray-500 transition-colors"
+          className="absolute right-3 text-fg-faint hover:text-fg-subtle transition-colors"
           tabIndex={-1}
         >
           <X size={16} />
