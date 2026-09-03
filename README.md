@@ -2,14 +2,12 @@
 
 <img src="portico.png" />
 
-Portico is my personal bookmark manager. I really dislike excessive curation, so it offers only barebones functionality. Bookmarks can be organised into folders, that's about it.
-
-The UI is currently implemented as an override of the Chrome new tab page. This ensures they're always front-and-center, increasing the likelihood I'll actual get around to reading them. 
+Portico is my personal startpage and bookmark manager.
 
 ## Components
-- a browser extension for saving bookmarks
-- a simple Go backend for storing bookmarks in sqlite
-- a neat grid-based UI 
+- a browser extension for adding/removing bookmarks
+- a Go backend for storing bookmarks in sqlite
+- a search engine wrapper
 
 ## Getting Started
 
