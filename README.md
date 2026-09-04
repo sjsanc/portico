@@ -1,6 +1,8 @@
-# Portico
+<h1 align="center">Portico</h1>
 
-<img src="portico.png" />
+<p align="center">
+  <img src="portico.png" width="800" style="border-radius: 12px;" />
+</p>
 
 Portico is my personal startpage and bookmark manager.
 
@@ -11,12 +13,12 @@ Portico is my personal startpage and bookmark manager.
 
 ## Getting Started
 
-Run `make dev` to boot everything up. 
+Run `make dev` to boot everything up.
 Run `make deploy` to build
 
 If you're using systemd:
 - `mv portico.service.example portico.service`
 - set your home directory
 - `make install-service`
-- `make start-service`. This will run everything in a service. 
+- `make start-service`. This will run everything in a service.
 - Add the extension to Chrome via `chrome://extensions/` > `load unpacked`.
