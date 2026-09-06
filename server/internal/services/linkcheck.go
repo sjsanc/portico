@@ -12,6 +12,8 @@ import (
 const (
 	checkTimeout     = 10 * time.Second
 	checkConcurrency = 10
+	checkRetries     = 3
+	checkRetryDelay  = 3 * time.Second
 )
 
 var httpClient = &http.Client{
@@ -57,7 +59,24 @@ func checkOne(bookmark models.Bookmark) {
 // hard failures (DNS/connection errors, timeouts, 404/410/5xx) - a 401/403
 // usually just means a bot is being blocked, not that the site is down, so
 // those are treated as reachable to avoid false positives.
+//
+// A single failed request isn't trusted on its own - some sites (last.fm's
+// custom non-standard status codes, slow/creaky servers) fail intermittently
+// even when the resource is fine. A URL is only flagged once every attempt
+// in a row fails.
 func isBroken(url string) bool {
+	for attempt := 1; attempt <= checkRetries; attempt++ {
+		if !isBrokenOnce(url) {
+			return false
+		}
+		if attempt < checkRetries {
+			time.Sleep(checkRetryDelay)
+		}
+	}
+	return true
+}
+
+func isBrokenOnce(url string) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), checkTimeout)
 	defer cancel()
 
